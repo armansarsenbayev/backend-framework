@@ -1,9 +1,9 @@
 package models
 
 type Book struct {
-    ID         int     `json:"id"`
-    Title      string  `json:"title" binding:"required"`
-    AuthorID   int     `json:"author_id" binding:"required"`
-    CategoryID int     `json:"category_id" binding:"required"`
-    Price      float64 `json:"price" binding:"required,min=1"`
+	ID         int     `json:"id"`
+	Title      string  `json:"title"`
+	AuthorID   int     `json:"author_id"`
+	CategoryID int     `json:"category_id"`
+	Price      float64 `json:"price"`
 }
