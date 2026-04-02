@@ -1,102 +1,73 @@
 package handlers
 
 import (
-    "bookstore/models"
-    "net/http"
-    "strconv"
-    "github.com/gin-gonic/gin"
+	"bookstore/config"
+	"bookstore/models"
+	"net/http"
+	"strconv"
+	"github.com/gin-gonic/gin"
 )
 
-var books = []models.Book{}
-var nextBookID = 1
-
 func GetBooks(c *gin.Context) {
-    filteredBooks := []models.Book{}
+	var books []models.Book
+	query := config.DB
 
-    categoryParam := c.Query("category_id")
-    if categoryParam != "" {
-        catID, _ := strconv.Atoi(categoryParam)
-        for _, b := range books {
-            if b.CategoryID == catID {
-                filteredBooks = append(filteredBooks, b)
-            }
-        }
-    } else {
-        filteredBooks = books
-    }
+	if catID := c.Query("category_id"); catID != "" {
+		query = query.Where("category_id = ?", catID) 
+	}
 
-    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-    limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset := (page - 1) * limit
 
-    start := (page - 1) * limit
-    end := start + limit
+	query.Limit(limit).Offset(offset).Find(&books)
 
-    if start >= len(filteredBooks) {
-        c.JSON(http.StatusOK, []models.Book{})
-        return
-    }
-    if end > len(filteredBooks) {
-        end = len(filteredBooks)
-    }
-
-    c.JSON(http.StatusOK, filteredBooks[start:end])
+	c.JSON(http.StatusOK, books)
 }
 
 func CreateBook(c *gin.Context) {
-    var newBook models.Book
-    if err := c.ShouldBindJSON(&newBook); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-
-    newBook.ID = nextBookID
-    nextBookID++
-    books = append(books, newBook)
-
-    c.JSON(http.StatusCreated, newBook)
+	var newBook models.Book
+	if err := c.ShouldBindJSON(&newBook); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	config.DB.Create(&newBook)
+	c.JSON(http.StatusCreated, newBook)
 }
 
 func GetBookByID(c *gin.Context) {
-    id, _ := strconv.Atoi(c.Param("id"))
-
-    for _, b := range books {
-        if b.ID == id {
-            c.JSON(http.StatusOK, b)
-            return
-        }
-    }
-    c.JSON(http.StatusNotFound, gin.H{"message": "Book not found"})
+	var book models.Book
+	if err := config.DB.First(&book, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+		return
+	}
+	c.JSON(http.StatusOK, book)
 }
 
 func UpdateBook(c *gin.Context) {
-    id, _ := strconv.Atoi(c.Param("id"))
+	var book models.Book
+	if err := config.DB.First(&book, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+		return
+	}
 
-    var updatedData models.Book
-    if err := c.ShouldBindJSON(&updatedData); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	var updatedData models.Book
+	if err := c.ShouldBindJSON(&updatedData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-    for i, b := range books {
-        if b.ID == id {
-            updatedData.ID = id
-            books[i] = updatedData
-            c.JSON(http.StatusOK, updatedData)
-            return
-        }
-    }
-    c.JSON(http.StatusNotFound, gin.H{"message": "Book not found"})
+	config.DB.Model(&book).Updates(updatedData)
+	c.JSON(http.StatusOK, book)
 }
 
 func DeleteBook(c *gin.Context) {
-    id, _ := strconv.Atoi(c.Param("id"))
+	var book models.Book
+	if err := config.DB.First(&book, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+		return
+	}
 
-    for i, b := range books {
-        if b.ID == id {
-            books = append(books[:i], books[i+1:]...)
-            c.JSON(http.StatusOK, gin.H{"message": "Book deleted"})
-            return
-        }
-    }
-    c.JSON(http.StatusNotFound, gin.H{"message": "Book not found"})
+	config.DB.Delete(&book) 
+	c.JSON(http.StatusOK, gin.H{"message": "Book deleted"})
 }

@@ -1,24 +1,33 @@
 package main
 
 import (
-    "bookstore/handlers"
-    "github.com/gin-gonic/gin"
+	"bookstore/config"
+	"bookstore/handlers"
+	"bookstore/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-    router := gin.Default()
+	config.ConnectDatabase()
 
-    router.GET("/authors", handlers.GetAuthors)
-    router.POST("/authors", handlers.CreateAuthor)
+	config.DB.AutoMigrate(&models.Book{}, &models.Author{}, &models.Category{})
 
-    router.GET("/categories", handlers.GetCategories)
-    router.POST("/categories", handlers.CreateCategory)
+	router := gin.Default()
 
-    router.GET("/books", handlers.GetBooks)
-    router.GET("/books/:id", handlers.GetBookByID)
-    router.POST("/books", handlers.CreateBook)
-    router.PUT("/books/:id", handlers.UpdateBook)
-    router.DELETE("/books/:id", handlers.DeleteBook)
 
-    router.Run(":8080")
+	router.GET("/authors", handlers.GetAuthors)
+	router.GET("/authors/:id", handlers.GetAuthorByID)
+	router.POST("/authors", handlers.CreateAuthor)
+
+	router.GET("/categories", handlers.GetCategories)
+	router.POST("/categories", handlers.CreateCategory)
+
+	router.GET("/books", handlers.GetBooks)
+	router.GET("/books/:id", handlers.GetBookByID)
+	router.POST("/books", handlers.CreateBook)
+	router.PUT("/books/:id", handlers.UpdateBook)
+	router.DELETE("/books/:id", handlers.DeleteBook)
+
+	router.Run(":8080")
 }
