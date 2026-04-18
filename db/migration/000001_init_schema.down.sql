@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS "orders";
+DROP TABLE IF EXISTS "menu_items";
+DROP TABLE IF EXISTS "restaurants";
+DROP TABLE IF EXISTS "users";

@@ -12,11 +12,10 @@ import (
 func main() {
 	config.ConnectDatabase()
 
-	config.DB.AutoMigrate(&models.Restaurant{}, &models.MenuItem{}, &models.Order{}, &models.User{})
 	router := gin.Default()
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:5173"} // Стандартный порт Vite React
+	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	router.Use(cors.New(corsConfig))
 
