@@ -3,7 +3,7 @@ package main
 import (
 	"bookstore/config"
 	"bookstore/handlers"
-	"bookstore/models"
+
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
