@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bookstore/clients"
 	"bookstore/config"
 	"bookstore/models"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -18,6 +20,14 @@ func CreateOrder(c *gin.Context) {
 
 	newOrder.Status = "pending"
 	config.DB.Create(&newOrder)
+
+	go func(orderID uint, status string) {
+		err := clients.SendNotification(orderID, status)
+		if err != nil {
+			log.Printf("Failed to send notification for order %d: %v\n", orderID, err)
+		}
+	}(newOrder.ID, newOrder.Status)
+
 	c.JSON(http.StatusCreated, newOrder)
 }
 

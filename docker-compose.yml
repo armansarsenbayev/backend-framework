@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - notification
+    environment:
+      - DB_HOST=db
+      - NOTIFICATION_SERVICE_URL=http://notification:8081/notify
+
+  notification:
+    build: 
+      context: .
+      dockerfile: notification-service/Dockerfile
+    ports:
+      - "8081:8081"
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_DB: food_delivery_v2
+    ports:
+      - "5432:5432"
